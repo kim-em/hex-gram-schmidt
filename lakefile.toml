@@ -1,0 +1,15 @@
+name = "hex-gram-schmidt"
+defaultTargets = ["HexGramSchmidt"]
+
+[[require]]
+name = "batteries"
+git = "https://github.com/leanprover-community/batteries.git"
+rev = "v4.30.0-rc2"
+
+[[require]]
+name = "HexMatrix"
+git = "https://github.com/kim-em/hex-matrix.git"
+rev = "20e4c73f958cf7996199972a45e538d06121f91f"
+
+[[lean_lib]]
+name = "HexGramSchmidt"
