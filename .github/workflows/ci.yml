@@ -9,24 +9,33 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BENCH_VERIFY_HARD_CAP_SECONDS: 360
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
           auto-config: false
           build: false
+      - name: Install oracle dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgmp-dev
+          python3 -m pip install --user python-flint
       - name: Build library
         run: lake build
-      - name: Build + smoke conformance
+      - name: Build conformance
         run: |
           cd conformance
           lake build
-          lake exe hexgramschmidt_emit_fixtures | head -1
+          cd ..
+      - name: FLINT conformance oracle
+        run: bash scripts/ci/run_oracles.sh
       - name: Build + verify bench
         run: |
           cd bench
-          lake build
-          lake exe hexgramschmidt_bench verify
+          lake build hexgramschmidt_bench
+          bash ../scripts/ci/check_bench_verify_budget.sh hexgramschmidt_bench
       - name: Assert Mathlib-free
         run: |
           if find . -type d -name mathlib | grep -q .; then
