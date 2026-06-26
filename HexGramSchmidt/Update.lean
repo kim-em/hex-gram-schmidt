@@ -1,5 +1,9 @@
-import HexGramSchmidt.Int
-import HexMatrix.RowEchelon
+module
+
+public import HexGramSchmidt.Int
+public import HexMatrix.RowEchelon
+
+public section
 
 /-!
 Row-operation update formulas for `hex-gram-schmidt`.
@@ -15,6 +19,7 @@ namespace Hex
 namespace GramSchmidt
 
 /-- The row immediately preceding `k`. -/
+@[expose]
 def prevRow (k : Fin n) (hk : 0 < k.val) : Fin n := by
   refine ⟨k.val - 1, ?_⟩
   omega
@@ -25,23 +30,28 @@ namespace GramSchmidt.Int
 
 /-- Size-reduce row `k` against an earlier row `j` by replacing
 `b[k]` with `b[k] - r * b[j]`. -/
+@[expose]
 def sizeReduce (b : Matrix Int n m) (j k : Fin n) (r : Int) : Matrix Int n m :=
   Matrix.rowAdd b j k (-r)
 
 /-- Swap adjacent rows `k - 1` and `k`. -/
+@[expose]
 def adjacentSwap (b : Matrix Int n m) (k : Fin n) (hk : 0 < k.val) : Matrix Int n m :=
   Matrix.rowSwap b (GramSchmidt.prevRow k hk) k
 
 /-- The old `d[k]` denominator used by exact adjacent-swap updates. -/
+@[expose]
 def adjacentSwapDenom (b : Matrix Int n m) (k : Fin n) : Int :=
   ((gramDet b k.val (Nat.le_of_lt k.isLt) : Nat) : Int)
 
 /-- The old `B = nu[k][k-1]` pivot coefficient used by adjacent swaps. -/
+@[expose]
 def adjacentSwapPivotCoeff (b : Matrix Int n m) (k : Fin n) (hk : 0 < k.val) : Int :=
   let km1 := GramSchmidt.prevRow k hk
   GramSchmidt.entry (scaledCoeffs b) k km1
 
 /-- Numerator of the adjacent-swap `d[k]'` update. -/
+@[expose]
 def adjacentSwapGramDetNumerator (b : Matrix Int n m) (k : Fin n) (hk : 0 < k.val) :
     Int :=
   let km1 := GramSchmidt.prevRow k hk
@@ -50,11 +60,13 @@ def adjacentSwapGramDetNumerator (b : Matrix Int n m) (k : Fin n) (hk : 0 < k.va
       ((gramDet b km1.val (Nat.le_of_lt km1.isLt) : Nat) : Int) + B ^ 2
 
 /-- The integer quotient used as `d[k]'` in the adjacent-swap update formulas. -/
+@[expose]
 def adjacentSwapGramDetQuotient (b : Matrix Int n m) (k : Fin n) (hk : 0 < k.val) :
     Int :=
   adjacentSwapGramDetNumerator b k hk / adjacentSwapDenom b k
 
 /-- Numerator of the adjacent-swap `nu[i][k-1]'` update for rows above `k`. -/
+@[expose]
 def adjacentSwapScaledCoeffAbovePrevNumerator (b : Matrix Int n m)
     (k : Fin n) (hk : 0 < k.val) (i : Fin n) : Int :=
   let km1 := GramSchmidt.prevRow k hk
@@ -64,6 +76,7 @@ def adjacentSwapScaledCoeffAbovePrevNumerator (b : Matrix Int n m)
     B * GramSchmidt.entry (scaledCoeffs b) i km1
 
 /-- Numerator of the adjacent-swap `nu[i][k]'` update for rows above `k`. -/
+@[expose]
 def adjacentSwapScaledCoeffAboveCurrNumerator (b : Matrix Int n m)
     (k : Fin n) (hk : 0 < k.val) (i : Fin n) : Int :=
   let km1 := GramSchmidt.prevRow k hk

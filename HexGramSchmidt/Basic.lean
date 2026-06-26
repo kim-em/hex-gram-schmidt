@@ -1,4 +1,8 @@
-import HexMatrix.RREF
+module
+
+public import HexMatrix.RREF
+
+public section
 
 /-!
 Core Gram-Schmidt basis and coefficient definitions for `hex-gram-schmidt`.
@@ -507,15 +511,18 @@ private def coeffMatrix (rows basis : Matrix Rat n m) : Matrix Rat n n :=
       0
 
 /-- Access a dense matrix entry by row and column indices. -/
+@[expose]
 def entry (M : Matrix R n m) (i : Fin n) (j : Fin m) : R :=
   (M.row i)[j]
 
 /-- Cast an integer matrix into the rational matrix space used by
 Gram-Schmidt. -/
-private def castIntMatrix (b : Matrix Int n m) : Matrix Rat n m :=
+@[expose]
+def castIntMatrix (b : Matrix Int n m) : Matrix Rat n m :=
   Vector.map (fun row => Vector.map (fun x : Int => (x : Rat)) row) b
 
 /-- The prefix combination term used in the decomposition theorem shape. -/
+@[expose]
 def prefixCombination (coeffs : Matrix Rat n n) (basis : Matrix Rat n m) (i : Nat) (hi : i < n) :
     Vector Rat m :=
   (List.finRange i).foldl
@@ -525,10 +532,12 @@ def prefixCombination (coeffs : Matrix Rat n n) (basis : Matrix Rat n m) (i : Na
     0
 
 /-- The row-prefix matrix containing rows `0` through `i`. -/
+@[expose]
 def prefixRows (M : Matrix R n m) (i : Nat) (hi : i < n) : Matrix R (i + 1) m :=
   Vector.ofFn fun j => M.row ⟨j.val, Nat.lt_of_lt_of_le j.isLt (Nat.succ_le_of_lt hi)⟩
 
 /-- Executable row-span membership in the first `i + 1` rows of a matrix. -/
+@[expose]
 def prefixSpan (M : Matrix Rat n m) (i : Nat) (hi : i < n) (v : Vector Rat m) : Prop :=
   ∃ c : Vector Rat (i + 1), Matrix.rowCombination (prefixRows M i hi) c = v
 

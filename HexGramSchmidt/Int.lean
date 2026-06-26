@@ -1,6 +1,10 @@
-import HexGramSchmidt.Basic
-import HexMatrix.Bareiss
-import HexMatrix.Determinant
+module
+
+public import HexGramSchmidt.Basic
+public import HexMatrix.Bareiss
+public import HexMatrix.Determinant
+
+public section
 
 /-!
 Executable Gram-determinant and scaled-coefficient definitions for
@@ -16,10 +20,12 @@ namespace Hex
 namespace GramSchmidt
 
 /-- Promote an index into a shorter prefix to the ambient matrix height. -/
+@[expose]
 def liftFinLE (i : Fin k) (hk : k ≤ n) : Fin n :=
   ⟨i.val, Nat.lt_of_lt_of_le i.isLt hk⟩
 
 /-- Leading principal Gram matrix of the first `k` rows of an integer basis. -/
+@[expose]
 def leadingGramMatrixInt (b : Matrix Int n m) (k : Nat) (hk : k ≤ n) : Matrix Int k k :=
   Matrix.ofFn fun i j =>
     Matrix.dot (b.row (liftFinLE i hk)) (b.row (liftFinLE j hk))
@@ -39,6 +45,7 @@ theorem leadingGramMatrixInt_eq_leadingPrefix_gram
     liftFinLE]
 
 /-- Leading principal Gram matrix of the first `k` rows of a rational basis. -/
+@[expose]
 def leadingGramMatrixRat (b : Matrix Rat n m) (k : Nat) (hk : k ≤ n) : Matrix Rat k k :=
   Matrix.ofFn fun i j =>
     Matrix.dot (b.row (liftFinLE i hk)) (b.row (liftFinLE j hk))
@@ -46,6 +53,7 @@ def leadingGramMatrixRat (b : Matrix Rat n m) (k : Nat) (hk : k ≤ n) : Matrix 
 /-- Determinant matrix used by the integral `scaledCoeffs` entry formula:
 take the leading `j + 1` Gram matrix and replace its last column by the inner
 products with row `i`. -/
+@[expose]
 def scaledCoeffMatrix (b : Matrix Int n m) (i j : Fin n) (hji : j.val < i.val) :
     Matrix Int (j.val + 1) (j.val + 1) :=
   let hk : j.val + 1 ≤ n := Nat.succ_le_of_lt (Nat.lt_trans hji i.isLt)
@@ -64,17 +72,20 @@ namespace GramSchmidt.Int
 /-- Integer lattice membership in the row span of `b`. This mirrors the LLL
 predicate without making `hex-gram-schmidt` depend on the downstream LLL
 library. -/
+@[expose]
 def memLattice (b : Matrix Int n m) (v : Vector Int m) : Prop :=
   ∃ c : Vector Int n, Matrix.rowCombination b c = v
 
 /-- The `k`-th Gram determinant: the determinant of the `k × k` leading
 principal Gram matrix of the integer input. -/
+@[expose]
 def gramDet (b : Matrix Int n m) (k : Nat) (hk : k ≤ n) : Nat :=
   (Matrix.bareiss (GramSchmidt.leadingGramMatrixInt b k hk)).toNat
 
 /-- Linear independence of the row prefix determinants used by the
 Gram-Schmidt theorem surface, stated over the Mathlib-free executable
 `gramDet` data. -/
+@[expose]
 def independent (b : Matrix Int n m) : Prop :=
   ∀ k : Fin n, 0 < gramDet b (k.val + 1) (Nat.succ_le_of_lt k.isLt)
 
@@ -89,7 +100,8 @@ noncomputable def gramSchmidtNormProduct (b : Matrix Int n m) (k : Nat) (hk : k 
 
 /-- Read a diagonal entry from a Bareiss elimination matrix as a natural
 determinant value. -/
-private def bareissDiagNat (data : Matrix.BareissData n) (r : Nat) (hr : r < n) : Nat :=
+@[expose]
+def bareissDiagNat (data : Matrix.BareissData n) (r : Nat) (hr : r < n) : Nat :=
   let i : Fin n := ⟨r, hr⟩
   ((data.matrix.get i).get i).toNat
 
@@ -97,6 +109,7 @@ private def bareissDiagNat (data : Matrix.BareissData n) (r : Nat) (hr : r < n) 
 elimination pass over the full Gram matrix. This helper is only used for Gram
 matrices: once a leading row prefix is singular, every larger leading prefix is
 also singular, so all later leading determinants are zero. -/
+@[expose]
 def gramDetVecEntry (data : Matrix.BareissData n) (k : Fin (n + 1)) : Nat :=
   match hk : k.val with
   | 0 => 1
@@ -131,7 +144,7 @@ theorem gramDetVecEntry_noPivot_eq_zero_of_singularStep_lt
 /-- Mutable loop state for the integer scaled Gram-Schmidt pass: the current
 step, the working matrix and coefficient arrays, and the previous Bareiss
 pivot. -/
-private structure ScaledCoeffArrayState where
+structure ScaledCoeffArrayState where
   step : Nat
   matrix : Array (Array Int)
   coeffs : Array (Array Int)
@@ -142,11 +155,11 @@ private structure ScaledCoeffArrayState where
   rows[row]![col]!
 
 /-- An `n × n` row-major nested array initialised to all zeros. -/
-private def zeroRows (n : Nat) : Array (Array Int) :=
+def zeroRows (n : Nat) : Array (Array Int) :=
   Array.replicate n (Array.replicate n 0)
 
 /-- The Gram matrix of `b` packaged as a row-major nested integer array. -/
-private def gramRows (b : Matrix Int n m) : Array (Array Int) :=
+def gramRows (b : Matrix Int n m) : Array (Array Int) :=
   Array.ofFn fun i : Fin n =>
     Array.ofFn fun j : Fin n =>
       Matrix.dot (b.row i) (b.row j)
@@ -161,6 +174,7 @@ private theorem getArrayEntry_gramRows (b : Matrix Int n m) (i j : Fin n) :
 entry `(i, j)` as `rows[i]![j]!` (`getArrayEntry`). This converts the executable
 array passes back to the `Matrix` API; for the Gram rows it inverts `gramRows`,
 so `rowsToMatrix (gramRows b) n = gramMatrix b`. -/
+@[expose]
 def rowsToMatrix (rows : Array (Array Int)) (n : Nat) : Matrix Int n n :=
   Matrix.ofFn fun i j => getArrayEntry rows i.val j.val
 
@@ -176,7 +190,7 @@ private theorem rowsToMatrix_gramRows (b : Matrix Int n m) :
     getArrayEntry_gramRows b (⟨i, hi⟩ : Fin n) (⟨j, hj⟩ : Fin n)
 
 /-- Write `value` into entry `(row, col)` of a row-major nested array. -/
-private def setArrayEntry (rows : Array (Array Int)) (row col : Nat) (value : Int) :
+def setArrayEntry (rows : Array (Array Int)) (row col : Nat) (value : Int) :
     Array (Array Int) :=
   rows.set! row (rows[row]!.set! col value)
 
@@ -436,9 +450,9 @@ current entry. -/
 private theorem modify_eq_set!
     {α : Type} [Inhabited α] (arr : Array α) (i : Nat) (f : α → α) :
     arr.modify i f = arr.set! i (f arr[i]!) := by
-  by_cases h : i < arr.size
-  · simp [Array.modify, Array.modifyM, Array.set!, Array.setIfInBounds, h]
-  · simp [Array.modify, Array.modifyM, Array.set!, Array.setIfInBounds, h]
+  -- `Array.modify`/`modifyM` are public but not `@[expose]`d, so prove via the
+  -- exposed `@[grind]` lemma API rather than unfolding the definitions.
+  grind
 
 /-- `Array.modify` leaves any index other than the modified one unchanged. -/
 private theorem getElem!_modify_ne
@@ -944,7 +958,7 @@ private theorem rowsToMatrix_stepScaledRows_eq
 
 end StepScaledRowsBookkeeping
 
-private def scaledCoeffArrayLoop (n fuel : Nat) (state : ScaledCoeffArrayState) :
+def scaledCoeffArrayLoop (n fuel : Nat) (state : ScaledCoeffArrayState) :
     ScaledCoeffArrayState :=
   match fuel with
   | 0 => state
@@ -1068,6 +1082,7 @@ proves the two agree entry-for-entry, and that bridge is what connects
 `scaledCoeffRowsSchur` to `gramDet` / `scaledCoeffs`. Do not remove this
 formulation as "unused": deleting it breaks the correctness proof of the live
 path. -/
+@[expose]
 def scaledCoeffRows (b : Matrix Int n m) : Array (Array Int) :=
   let state :=
     scaledCoeffArrayLoop n n
@@ -1088,7 +1103,7 @@ private def schurSigma (rows : Array (Array Int)) (i j : Nat) : Int :=
           (getArrayEntry rows (p - 1) (p - 1))
     return sigma
 
-private def schurScaledCoeffEntry
+def schurScaledCoeffEntry
     (rows gram : Array (Array Int)) (i j : Nat) : Int :=
   if j = 0 then
     getArrayEntry gram i 0
@@ -1101,6 +1116,7 @@ private def schurScaledCoeffEntry
 Rows are filled from top to bottom; within row `i`, entries `0..i` are written
 left to right.  For `j < i` this writes the scaled coefficient `ν[i][j]`; for
 `j = i` the same recurrence writes the diagonal Gram determinant `d_{i+1}`. -/
+@[expose]
 def scaledCoeffRowsSchur (b : Matrix Int n m) : Array (Array Int) :=
   Id.run do
     let gram := gramRows b
@@ -1763,7 +1779,7 @@ structure Data (n : Nat) where
   d : Vector Nat (n + 1)
   ν : Matrix Int n n
 
-private def gramDetVecFromScaledCoeffRows (rows : Array (Array Int)) :
+def gramDetVecFromScaledCoeffRows (rows : Array (Array Int)) :
     Vector Nat (n + 1) :=
   Vector.ofFn fun k =>
     match hk : k.val with
@@ -1776,6 +1792,7 @@ private def gramDetVecFromScaledCoeffRows (rows : Array (Array Int)) :
 
 /-- Run the per-row Schur scaled-coefficient kernel once and package both the
 leading Gram determinant vector and the scaled Gram-Schmidt coefficient matrix. -/
+@[expose]
 def data (b : Matrix Int n m) : Data n :=
   let rows := scaledCoeffRowsSchur b
   { d := gramDetVecFromScaledCoeffRows rows
@@ -1783,12 +1800,14 @@ def data (b : Matrix Int n m) : Data n :=
 
 /-- All leading Gram determinants, starting with the empty-prefix value
 `d₀ = 1`. -/
+@[expose]
 def gramDetVec (b : Matrix Int n m) : Vector Nat (n + 1) :=
   (data b).d
 
 /-- Integral scaled Gram-Schmidt coefficients. For `j < i`, the entry is the
 determinant formula corresponding to `d_{j+1} * μ_{i,j}`; on the diagonal we
 store `d_{j+1}`, and entries above the diagonal are zero. -/
+@[expose]
 def scaledCoeffs (b : Matrix Int n m) : Matrix Int n n :=
   (data b).ν
 
@@ -2873,7 +2892,8 @@ structure BareissGramRowInvariant (b : Matrix Int n m)
 
 /-- The initial no-pivot Gram state satisfies the row-coefficient invariant
 with each row represented by the standard basis vector `eᵢ`. -/
-private def bareissGramRowInvariant_initial (b : Matrix Int n m) :
+@[expose]
+def bareissGramRowInvariant_initial (b : Matrix Int n m) :
     BareissGramRowInvariant b
       (Matrix.noPivotInitialState (Matrix.gramMatrix b)) := by
   refine
@@ -3056,7 +3076,8 @@ private theorem bareissGramRowInvariantCoeff_row
 
 /-- Coefficient witness produced by one regular Bareiss step on the row at
 index `i`.  The functional shape mirrors the row update on the matrix side. -/
-private def bareissGramRowInvariantStepCoeff
+@[expose]
+def bareissGramRowInvariantStepCoeff
     {b : Matrix Int n m} {state : Matrix.BareissState n}
     (hinv : BareissGramRowInvariant b state)
     (hnext : state.step + 1 < n) (i : Fin n) (_hi : state.step + 1 ≤ i.val) :
@@ -3120,7 +3141,7 @@ private theorem rowCombination_bareissGramRegularStepQuotient
       Matrix.rowCombination b (Vector.ofFn hq.q) := by
   rw [bareissGramRegularStepQuotient_stepCoeff_eq hprev hq]
 
-private theorem bareissGramRowInvariantStepCoeff_support
+theorem bareissGramRowInvariantStepCoeff_support
     {b : Matrix Int n m} {state : Matrix.BareissState n}
     (hinv : BareissGramRowInvariant b state)
     (hnext : state.step + 1 < n) (i : Fin n) (hi : state.step + 1 ≤ i.val) :
@@ -3159,6 +3180,7 @@ Defined as a pure function of `b` and `fuel` (no `BareissGramRowInvariant`
 argument), so the canonical coefficient is fixed by the matrix and step
 count alone. Non-canonical row-coefficient witnesses are ruled out by the
 `IsCanonicalAt` predicate consumed by `StepWitness`. -/
+@[expose]
 def bareissGramCanonicalCoeff (b : Matrix Int n m) :
     Nat → Fin n → Vector Int n
   | 0, i => Vector.ofFn fun k : Fin n => if i = k then 1 else 0
@@ -3279,6 +3301,7 @@ The SPEC counterexample at rows `(1,1), (1,0), (-1,-1)` (#6505) produces two
 distinct `BareissGramRowInvariant` instances at the same loop state whose
 coefficient vectors differ by the kernel vector. Both satisfy `entry_eq_dot`,
 but only one (the canonical one) yields an integer Bareiss-step quotient. -/
+@[expose]
 def IsCanonicalAt (b : Matrix Int n m) (fuel : Nat)
     (hinv : BareissGramRowInvariant b
       (Matrix.noPivotLoop fuel
@@ -3441,7 +3464,8 @@ private theorem bareissGramRegularStep_entry_eq_dot
 /-- One regular no-pivot Bareiss step preserves the Gram row-coefficient
 invariant, provided the later loop proof supplies the exact-division entry
 relation for the fraction-free updated row combinations. -/
-private def bareissGramRowInvariant_regular_step
+@[expose]
+def bareissGramRowInvariant_regular_step
     {b : Matrix Int n m} {state : Matrix.BareissState n}
     (hnext : state.step + 1 < n)
     (_hp : state.matrix[state.step][state.step] ≠ 0)
@@ -3741,6 +3765,7 @@ satisfying `entry_eq_dot` — from supplying integer quotients. The kernel-shift
 counterexample (SPEC #6505: rows `(1,1), (1,0), (-1,-1)` at row 2 step 1)
 shows the restriction is necessary: distinct non-canonical witnesses produce
 numerators differing by `1`, which is not divisible by `prevPivot = 2`. -/
+@[expose]
 abbrev StepWitness.Cell
     (b : Matrix Int n m) (fuel : Nat)
     (hinv : BareissGramRowInvariant b
@@ -3766,6 +3791,7 @@ the canonical coefficient vectors.
 Concrete providers are constructed in `HexGramSchmidtMathlib`, where the
 Bareiss-Desnanot proof infrastructure on PSD Gram minors is available; the
 Mathlib-free layer only consumes this abstraction. -/
+@[expose]
 abbrev StepWitness (b : Matrix Int n m) : Type :=
   ∀ (fuel : Nat)
     (hinv : BareissGramRowInvariant b
@@ -6139,14 +6165,6 @@ private theorem rowCombination_int_getElem
   show Matrix.dot ((Matrix.transpose b).row col) c = _
   simp [Matrix.dot, Hex.Vector.dotProduct, Matrix.row, Matrix.transpose, Matrix.col]
 
-/-- The cast of an integer matrix to a rational matrix used by Gram-Schmidt.
-This mirrors `GramSchmidt.castIntMatrix` (which is `private` in `Basic.lean`)
-so we can refer to it directly inside `Int.lean`; the two definitions are
-definitionally equal and unify against the term that appears in the statement
-of `basis_span`. -/
-private def castIntMatrix (b : Matrix Int n m) : Matrix Rat n m :=
-  Vector.map (fun row => Vector.map (fun x : Int => (x : Rat)) row) b
-
 /-- Entry expansion of the cast prefix row combination. The `(j + 1)`-row prefix
 of `castIntMatrix b` combined with `prefixCoeffsCast c k` reads out as a sum of
 the cast integer products through index `k`. -/
@@ -8318,6 +8336,7 @@ namespace GramSchmidt.Rat
 This remains Mathlib-free API: it is the direct Hex determinant definition used
 by rational Gram-Schmidt callers, not a theorem identifying an executable Hex
 output with a Leibniz determinant. -/
+@[expose]
 def gramDet (b : Matrix Rat n m) (k : Nat) (hk : k ≤ n) : Rat :=
   Matrix.det (GramSchmidt.leadingGramMatrixRat b k hk)
 

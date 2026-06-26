@@ -1,3 +1,7 @@
-import HexGramSchmidt.Basic
-import HexGramSchmidt.Int
-import HexGramSchmidt.Update
+module
+
+public import HexGramSchmidt.Basic
+public import HexGramSchmidt.Int
+public import HexGramSchmidt.Update
+
+public section
