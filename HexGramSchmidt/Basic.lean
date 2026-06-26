@@ -21,12 +21,14 @@ namespace GramSchmidt
 /-- Coefficient of the orthogonal projection of `row` onto `basisRow`.
 When the basis row has zero norm we use `0`, which matches the degenerate
 case of Gram-Schmidt where the corresponding projection term vanishes. -/
-private def projectionCoeff (row basisRow : Vector Rat m) : Rat :=
+@[expose]
+def projectionCoeff (row basisRow : Vector Rat m) : Rat :=
   let denom := Matrix.dot basisRow basisRow
   if denom = 0 then 0 else Matrix.dot row basisRow / denom
 
 /-- Subtract the projection of `row` onto `basisRow`. -/
-private def subtractProjection (row basisRow : Vector Rat m) : Vector Rat m :=
+@[expose]
+def subtractProjection (row basisRow : Vector Rat m) : Vector Rat m :=
   row - projectionCoeff row basisRow • basisRow
 
 /-- `dot (subtractProjection row basisRow) target` expands as `dot row target`
@@ -187,7 +189,8 @@ private theorem projectionCoeff_subtractProjection_eq
     grind
 
 /-- Reduce a row against the previously constructed orthogonal basis rows. -/
-private def reduceAgainstBasis (basisRev : List (Vector Rat m)) (row : Vector Rat m) :
+@[expose]
+def reduceAgainstBasis (basisRev : List (Vector Rat m)) (row : Vector Rat m) :
     Vector Rat m :=
   basisRev.foldl subtractProjection row
 
@@ -364,7 +367,8 @@ private theorem reduceAgainstBasis_reconstruction
   exact h.symm
 
 /-- Left-to-right Gram-Schmidt orthogonalization on a list of rows. -/
-private def basisRowsAux (basisRev pending : List (Vector Rat m)) : List (Vector Rat m) :=
+@[expose]
+def basisRowsAux (basisRev pending : List (Vector Rat m)) : List (Vector Rat m) :=
   match pending with
   | [] => basisRev.reverse
   | row :: rows =>
@@ -372,11 +376,13 @@ private def basisRowsAux (basisRev pending : List (Vector Rat m)) : List (Vector
       basisRowsAux (next :: basisRev) rows
 
 /-- Left-to-right Gram-Schmidt orthogonalization on a matrix's rows. -/
-private def basisRows (rows : List (Vector Rat m)) : List (Vector Rat m) :=
+@[expose]
+def basisRows (rows : List (Vector Rat m)) : List (Vector Rat m) :=
   basisRowsAux [] rows
 
 /-- Rebuild a matrix from its row list after Gram-Schmidt orthogonalization. -/
-private def basisMatrix (b : Matrix Rat n m) : Matrix Rat n m :=
+@[expose]
+def basisMatrix (b : Matrix Rat n m) : Matrix Rat n m :=
   let rows := basisRows b.toList
   Vector.ofFn fun i => rows[i.val]!
 
@@ -501,7 +507,8 @@ private theorem basisRows_head (b : Matrix Rat n m) (hn : 0 < n) :
         basisRowsAux_singleton_head (row := b[0]) (rows := rows)
 
 /-- Gram-Schmidt coefficient matrix for an already-cast rational input. -/
-private def coeffMatrix (rows basis : Matrix Rat n m) : Matrix Rat n n :=
+@[expose]
+def coeffMatrix (rows basis : Matrix Rat n m) : Matrix Rat n n :=
   Matrix.ofFn fun i j =>
     if hlt : j.val < i.val then
       projectionCoeff rows[i] basis[j]
@@ -2937,10 +2944,12 @@ end GramSchmidt
 namespace GramSchmidt.Rat
 
 /-- The Gram-Schmidt orthogonal basis for a rational matrix. -/
+@[expose]
 noncomputable def basis (b : Matrix Rat n m) : Matrix Rat n m :=
   GramSchmidt.basisMatrix b
 
 /-- The Gram-Schmidt coefficient matrix for a rational input matrix. -/
+@[expose]
 noncomputable def coeffs (b : Matrix Rat n m) : Matrix Rat n n :=
   GramSchmidt.coeffMatrix b (basis b)
 
@@ -3919,10 +3928,12 @@ namespace GramSchmidt.Int
 
 /-- The Gram-Schmidt orthogonal basis for an integer matrix, viewed in
 `Rat` after coefficient divisions. -/
+@[expose]
 noncomputable def basis (b : Matrix Int n m) : Matrix Rat n m :=
   GramSchmidt.basisMatrix (GramSchmidt.castIntMatrix b)
 
 /-- The Gram-Schmidt coefficient matrix for an integer input matrix. -/
+@[expose]
 noncomputable def coeffs (b : Matrix Int n m) : Matrix Rat n n :=
   GramSchmidt.coeffMatrix (GramSchmidt.castIntMatrix b) (basis b)
 

@@ -90,6 +90,7 @@ def independent (b : Matrix Int n m) : Prop :=
   ∀ k : Fin n, 0 < gramDet b (k.val + 1) (Nat.succ_le_of_lt k.isLt)
 
 /-- Product of the squared Gram-Schmidt basis norms along the first `k` rows. -/
+@[expose]
 noncomputable def gramSchmidtNormProduct (b : Matrix Int n m) (k : Nat) (hk : k ≤ n) :
     Rat :=
   (List.finRange k).foldl
@@ -155,10 +156,12 @@ structure ScaledCoeffArrayState where
   rows[row]![col]!
 
 /-- An `n × n` row-major nested array initialised to all zeros. -/
+@[expose]
 def zeroRows (n : Nat) : Array (Array Int) :=
   Array.replicate n (Array.replicate n 0)
 
 /-- The Gram matrix of `b` packaged as a row-major nested integer array. -/
+@[expose]
 def gramRows (b : Matrix Int n m) : Array (Array Int) :=
   Array.ofFn fun i : Fin n =>
     Array.ofFn fun j : Fin n =>
@@ -190,6 +193,7 @@ private theorem rowsToMatrix_gramRows (b : Matrix Int n m) :
     getArrayEntry_gramRows b (⟨i, hi⟩ : Fin n) (⟨j, hj⟩ : Fin n)
 
 /-- Write `value` into entry `(row, col)` of a row-major nested array. -/
+@[expose]
 def setArrayEntry (rows : Array (Array Int)) (row col : Nat) (value : Int) :
     Array (Array Int) :=
   rows.set! row (rows[row]!.set! col value)
@@ -538,7 +542,8 @@ private theorem size_foldl_modify
 
 /-- Write column `k` of the coefficient array, copying the matrix-column values
 from row `k` downward. -/
-private def writeScaledColumn (coeffs rows : Array (Array Int)) (n k : Nat) :
+@[expose]
+def writeScaledColumn (coeffs rows : Array (Array Int)) (n k : Nat) :
     Array (Array Int) :=
   Id.run do
     let mut next := setArrayEntry coeffs k k (getArrayEntry rows k k)
@@ -670,7 +675,8 @@ private theorem getArrayEntry_default_row (j : Nat) :
     (default : Array Int)[j]! = 0 := by
   rfl
 
-private def stepScaledRows (rows : Array (Array Int)) (n k : Nat)
+@[expose]
+def stepScaledRows (rows : Array (Array Int)) (n k : Nat)
     (pivot prevPivot : Int) : Array (Array Int) :=
   Id.run do
     let mut next := rows
@@ -958,6 +964,7 @@ private theorem rowsToMatrix_stepScaledRows_eq
 
 end StepScaledRowsBookkeeping
 
+@[expose]
 def scaledCoeffArrayLoop (n fuel : Nat) (state : ScaledCoeffArrayState) :
     ScaledCoeffArrayState :=
   match fuel with
@@ -1092,7 +1099,8 @@ def scaledCoeffRows (b : Matrix Int n m) : Array (Array Int) :=
         prevPivot := 1 }
   state.coeffs
 
-private def schurSigma (rows : Array (Array Int)) (i j : Nat) : Int :=
+@[expose]
+def schurSigma (rows : Array (Array Int)) (i j : Nat) : Int :=
   Id.run do
     let mut sigma := getArrayEntry rows i 0 * getArrayEntry rows j 0
     for p in [1:j] do
@@ -1103,6 +1111,7 @@ private def schurSigma (rows : Array (Array Int)) (i j : Nat) : Int :=
           (getArrayEntry rows (p - 1) (p - 1))
     return sigma
 
+@[expose]
 def schurScaledCoeffEntry
     (rows gram : Array (Array Int)) (i j : Nat) : Int :=
   if j = 0 then
@@ -1779,6 +1788,7 @@ structure Data (n : Nat) where
   d : Vector Nat (n + 1)
   ν : Matrix Int n n
 
+@[expose]
 def gramDetVecFromScaledCoeffRows (rows : Array (Array Int)) :
     Vector Nat (n + 1) :=
   Vector.ofFn fun k =>
