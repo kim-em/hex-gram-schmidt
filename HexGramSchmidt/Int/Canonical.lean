@@ -28,7 +28,7 @@ structure BareissGramRowInvariant (b : Matrix Int n m)
     (coeff i)[k] = 0
   entry_eq_dot : ∀ i j : Fin n, state.step ≤ i.val →
     state.matrix[i][j] =
-      Vector.dotProduct (Matrix.rowCombination b (coeff i)) (b.row j)
+      (Matrix.rowCombination b (coeff i)).dotProduct (b.row j)
 
 /-- The initial no-pivot Gram state satisfies the row-coefficient invariant
 with each row represented by the standard basis vector `eᵢ`. -/
@@ -78,8 +78,8 @@ private theorem foldl_sum_bareiss_row_update
 /-- `dot_bareiss_row_update_left` expands the dot product of a Bareiss-updated left vector as the corresponding linear combination of dots. -/
 private theorem dot_bareiss_row_update_left
     (x y : Int) (u v w : Vector Int m) :
-    Vector.dotProduct (Vector.ofFn fun a : Fin m => x * u[a] - y * v[a]) w =
-      x * Vector.dotProduct u w - y * Vector.dotProduct v w := by
+    (Vector.ofFn fun a : Fin m => x * u[a] - y * v[a]).dotProduct w =
+      x * u.dotProduct w - y * v.dotProduct w := by
   unfold Vector.dotProduct
   simpa using
     foldl_sum_bareiss_row_update
@@ -113,8 +113,8 @@ private theorem foldl_sum_bareiss_row_update_right
 /-- `dot_bareiss_row_update_right` expands the dot product with a Bareiss-updated right vector as the corresponding linear combination of dots. -/
 private theorem dot_bareiss_row_update_right
     (x y : Int) (w u v : Vector Int m) :
-    Vector.dotProduct w (Vector.ofFn fun a : Fin m => x * u[a] - y * v[a]) =
-      x * Vector.dotProduct w u - y * Vector.dotProduct w v := by
+    w.dotProduct (Vector.ofFn fun a : Fin m => x * u[a] - y * v[a]) =
+      x * w.dotProduct u - y * w.dotProduct v := by
   unfold Vector.dotProduct
   simpa using
     foldl_sum_bareiss_row_update_right
@@ -141,12 +141,9 @@ private theorem rowCombination_bareiss_coeff_update
   have h_rhs :
       (Vector.ofFn fun j : Fin m => x * (M.transpose * c)[j] - y * (M.transpose * d)[j])[jf] =
         x * (M.transpose * c)[jf] - y * (M.transpose * d)[jf] := by
-    change (Vector.ofFn fun j : Fin m =>
-      x * (M.transpose * c)[j] - y * (M.transpose * d)[j]).get jf =
-        x * (M.transpose * c)[jf] - y * (M.transpose * d)[jf]
-    rw [Vector.get_ofFn]
+    simp
   rw [h_rhs]
-  repeat rw [Matrix.mulVec_getElem]
+  repeat rw [Matrix.getElem_mulVec]
   exact dot_bareiss_row_update_right x y ((Matrix.transpose M).row jf) c d
 
 /-- `exactDiv_eq_of_eq_mul_right` recovers the right quotient when the exact-division numerator is a quotient times the nonzero denominator. -/
@@ -189,7 +186,7 @@ private theorem dot_rowCombination_exactDiv_eq_of_eq_mul_right
         (Matrix.rowCombination M
           (Vector.ofFn fun a : Fin n => Matrix.exactDiv (num a) denom))
         w =
-      Vector.dotProduct (Matrix.rowCombination M (Vector.ofFn q)) w := by
+      (Matrix.rowCombination M (Vector.ofFn q)).dotProduct w := by
   rw [rowCombination_exactDiv_eq_of_eq_mul_right M hdenom num q hnum]
 
 /-- Project the explicit coefficient witness for the row at index `i`. -/
@@ -475,7 +472,7 @@ private theorem dot_rowCombination_mul_right_int
     (b : Matrix Int n m) (f : Fin n → Int) (s : Int) (w : Vector Int m) :
     Vector.dotProduct
         (Matrix.rowCombination b (Vector.ofFn fun a : Fin n => f a * s)) w =
-      Vector.dotProduct (Matrix.rowCombination b (Vector.ofFn f)) w * s := by
+      (Matrix.rowCombination b (Vector.ofFn f)).dotProduct w * s := by
   have h_eq_input :
       (Vector.ofFn fun a : Fin n => f a * s) =
         Vector.ofFn fun a : Fin n =>
@@ -484,8 +481,7 @@ private theorem dot_rowCombination_mul_right_int
     intro a ha
     simp only [Vector.getElem_ofFn]
     grind
-  rw [h_eq_input]
-  rw [rowCombination_bareiss_coeff_update b s 0 (Vector.ofFn f) (Vector.ofFn f)]
+  rw [h_eq_input, rowCombination_bareiss_coeff_update b s 0 (Vector.ofFn f) (Vector.ofFn f)]
   rw [dot_bareiss_row_update_left s 0
     (Matrix.rowCombination b (Vector.ofFn f))
     (Matrix.rowCombination b (Vector.ofFn f)) w]
@@ -692,8 +688,7 @@ theorem bareissGramRowInvariant_regular_step_coeff_canonical
           bareissGramRowInvariantStepCoeff hinv hnext i hi := by
       show (if hi : _ then _ else _) = _
       rw [dif_pos hi]
-    rw [hLHS]
-    rw [bareissGramCanonicalCoeff_succ_regular b elapsed i hnext hp hi]
+    rw [hLHS, bareissGramCanonicalCoeff_succ_regular b elapsed i hnext hp hi]
     show Vector.ofFn (fun a : Fin n =>
         Matrix.exactDiv
           (_ * (hinv.coeff i)[a] - _ * (hinv.coeff _)[a])

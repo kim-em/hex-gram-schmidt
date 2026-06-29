@@ -7,10 +7,10 @@
       "type": "git",
       "subDir": null,
       "scope": "",
-      "rev": "eaaf4bf8982890184f109efa78bb8a650b1fb835",
+      "rev": "3de422434b4565933a0315338e714f303bb6442f",
       "name": "HexMatrix",
       "manifestFile": "lake-manifest.json",
-      "inputRev": "eaaf4bf8982890184f109efa78bb8a650b1fb835",
+      "inputRev": "3de422434b4565933a0315338e714f303bb6442f",
       "inherited": false,
       "configFile": "lakefile.toml"
     },
