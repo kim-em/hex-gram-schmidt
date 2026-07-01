@@ -9,22 +9,22 @@ rev = "f1580d28c2e9ff9e8d4d7cdef9dccbaa17780b03"
 [[require]]
 name = "HexMatrix"
 git = "https://github.com/kim-em/hex-matrix.git"
-rev = "972c81f44503301ec8c65f788d4487491dc3f6cc"
+rev = "7359d9c53c3d85309b526dd1663a33b28a28bf50"
 
 [[require]]
 name = "HexRowReduce"
 git = "https://github.com/kim-em/hex-row-reduce.git"
-rev = "922d066445a6a9e2deb2cad5cca099b2dad2c98e"
+rev = "48a6d92ac69e1fd6b3b1a86be9cb793a76e000c2"
 
 [[require]]
 name = "HexDeterminant"
 git = "https://github.com/kim-em/hex-determinant.git"
-rev = "0afc5bac5033aeb453fc873dcf043e216011a72e"
+rev = "8ce401452f1cfcf714d46887440d7d4341177818"
 
 [[require]]
 name = "HexBareiss"
 git = "https://github.com/kim-em/hex-bareiss.git"
-rev = "93f03da23452d0bb0f3848d10bfd8d40cca88936"
+rev = "733e2937905ad612423d86a2e39d345fd72ed8ac"
 
 [[lean_lib]]
 name = "HexGramSchmidt"
